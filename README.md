@@ -1,6 +1,7 @@
-# Keyphrase Generation with Cross-Document Attention
+# Keyphrase Generation with Transformer
 
-Source code for the paper entitled "Keyphrase Generation with Cross-Document Attention". Our implementation is built on the source code from <a href = "https://github.com/memray/OpenNMT-kpg-release"> OpenNMT-kpg-release</a> and  <a href = "https://github.com/OpenNMT/OpenNMT-py"> OpenNMT-py</a>. 
+This repo contains the source code for keyphrase generation with Transformer architecture.
+Based on the paper entitled "Keyphrase Generation with Cross-Document Attention". Our implementation is built on the source code from <a href = "https://github.com/memray/OpenNMT-kpg-release"> OpenNMT-kpg-release</a> and  <a href = "https://github.com/OpenNMT/OpenNMT-py"> OpenNMT-py</a>. 
 
 CDKGen is a Transformer-based keyphrase generator, which expands the Transformer to global attention with cross-document attention networks to incorporate available documents as references so as to generate better keyphrases with the guidance of topic information. On top of the proposed Transformer + cross-document attention architecture, we also adopt a copy mechanism to enhance our model via selecting appropriate words from documents to deal with out-of-vocabulary words in keyphrases. The structure of CDKGen is illustrated in the figure below.
 
