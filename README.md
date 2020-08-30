@@ -28,6 +28,8 @@ python 3.6
 
 pytorch 1.1
 
+torchtext 0.4 (important)
+
 sentence-transformers 0.2.4
 
 
