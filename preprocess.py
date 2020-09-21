@@ -207,7 +207,9 @@ def main(opt):
               'data/keyphrase/json/semeval/semeval_valid.json',
               'data/keyphrase/json/semeval/semeval_test.json',
               'data/keyphrase/json/duc/split/duc_valid.json',
-              'data/keyphrase/json/duc/split/duc_test.json'
+              'data/keyphrase/json/duc/split/duc_test.json',
+              'data/keyphrase/json/twitter/twitter_valid.json',
+              'data/keyphrase/json/twitter/twitter_test.json'
               ]
     for file_path in files_path:
         file = open(file_path, 'r')
