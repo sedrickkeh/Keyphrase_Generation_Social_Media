@@ -2,7 +2,7 @@ model_type: keyphrase
 memory: True
 tgt_type: verbatim_append
 
-data: data/keyphrase/meng17/twitter
+data: data/keyphrase/meng17/stackexchange_2
 save_checkpoint_steps: 10000
 keep_checkpoint: 40
 seed: 3435
@@ -47,10 +47,10 @@ param_init_glorot: 'true'
 log_file_level: DEBUG
 tensorboard: 'true'
 
-exp: twitter-one2seq-cdkgen
-save_model: models/twitter/kp20k.one2seq.cdkgen
-log_file: output/twitter.one2seq.cdkgen.log
-tensorboard_log_dir: runs/twitter.one2seq.cdkgen/
+exp: stackexchange_0
+save_model: models/stackexchange_0/stackexchange
+log_file: models/stackexchange_0/stackexchange.log
+tensorboard_log_dir: runs/stackexchange_0/
 
 world_size: 1
 gpu_ranks:
