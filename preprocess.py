@@ -208,10 +208,15 @@ def main(opt):
             #   'data/keyphrase/json/semeval/semeval_test.json',
             #   'data/keyphrase/json/duc/split/duc_valid.json',
             #   'data/keyphrase/json/duc/split/duc_test.json',
+            #   'data/keyphrase/json/twitter/twitter_train.json',
             #   'data/keyphrase/json/twitter/twitter_valid.json',
-            #   'data/keyphrase/json/twitter/twitter_test.json'
+            #   'data/keyphrase/json/twitter/twitter_test.json',
+                'data/keyphrase/json/stackexchange_2/stackexchange_2_train.json',
                 'data/keyphrase/json/stackexchange_2/stackexchange_2_valid.json',
                 'data/keyphrase/json/stackexchange_2/stackexchange_2_test.json'
+            #   'data/keyphrase/json/weibo/weibo_train.json',
+            #   'data/keyphrase/json/weibo/weibo_valid.json',
+            #   'data/keyphrase/json/weibo/weibo_test.json'
               ]
     for file_path in files_path:
         file = open(file_path, 'r')
