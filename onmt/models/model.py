@@ -49,14 +49,16 @@ class NMTModel(nn.Module):
       decoder (onmt.decoders.DecoderBase): a decoder object
     """
 
-    def __init__(self, encoder, decoder, all_docs=None, model_opt=None, embedding_b=None):
+    def __init__(self, encoder, decoder, reconstruct_decoder, src_vocab_size, all_docs=None, model_opt=None, embedding_b=None):
         super(NMTModel, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.reconstruct_decoder = reconstruct_decoder
+        self.to_tokens = nn.Linear(model_opt.rnn_size, src_vocab_size)
         self.all_docs = all_docs
         self.cal_word_memory = word_memory(embedding_b, all_docs)
 
-    def forward(self, src, tgt, lengths, bptt=False):
+    def forward(self, src, tgt, src_lengths, tgt_lengths, bptt=False):
         """Forward propagate a `src` and `tgt` pair for training.
         Possible initialized with a beginning decoder state.
 
@@ -76,10 +78,12 @@ class NMTModel(nn.Module):
             * decoder output ``(tgt_len, batch, hidden)``
             * dictionary attention dists of ``(tgt_len, batch, src_len)``
         """
+        # print("SRC SHAPE: {}, TGT SHAPE: {}".format(src.shape, tgt.shape))
+        # SRC SHAPE: torch.Size([136, 1, 1]), TGT SHAPE: torch.Size([9, 1, 1])
         tgt = tgt[:-1]  # exclude last target from inputs
         # src [300,13,1] [seq_len, batch_size, 1]
         # tgt [5,13,1] [tgt_len, batch, 1]
-        enc_state, memory_bank, lengths = self.encoder(src, lengths)
+        enc_state, memory_bank, src_lengths = self.encoder(src, src_lengths)
 
         if self.all_docs is not None:
             o = self.cal_word_memory(src, self.all_docs)
@@ -88,8 +92,22 @@ class NMTModel(nn.Module):
         if bptt is False:
             self.decoder.init_state(src, memory_bank, enc_state)
         dec_out, attns = self.decoder(tgt, memory_bank,
-                                      memory_lengths=lengths)
-        return dec_out, attns
+                                      memory_lengths=src_lengths)
+        
+        combined_out = torch.add(dec_out, o)
+        self.reconstruct_decoder.init_state(tgt, combined_out, enc_state)
+        rec_out, rec_attns = self.reconstruct_decoder(src, combined_out, 
+                                        memory_lengths=tgt_lengths)
+        rec_out = self.to_tokens(rec_out)
+
+        # dec_out_2, attns_2 = self.decoder(tgt, o.repeat(memory_bank.shape[0], 1, 1),
+        #                         memory_lengths=lengths)
+ 
+        ## o : [bsz, hidden], 
+        ## memory_bank: [seq_len, bsz, hidden]
+        ## dec_out: [tgt_len, bsz, hidden] 
+
+        return dec_out, attns, rec_out, rec_attns
 
     def update_dropout(self, dropout):
         self.encoder.update_dropout(dropout)

@@ -11,6 +11,7 @@
 
 from copy import deepcopy
 import torch
+import torch.nn.functional as F
 import traceback
 
 import onmt.utils
@@ -32,7 +33,11 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
     """
 
     tgt_field = dict(fields)["tgt"].base_field
+    src_field = dict(fields)["src"].base_field
     train_loss = onmt.utils.loss.build_loss_compute(model, tgt_field, opt)
+    # rec_opt = opt
+    # setattr(rec_opt, "copy_attn", False)
+    train_loss_rec = onmt.utils.loss.build_loss_compute(model, src_field, opt)
     valid_loss = onmt.utils.loss.build_loss_compute(
         model, tgt_field, opt, train=False)
 
@@ -66,7 +71,7 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
         if opt.early_stopping > 0 else None
 
     report_manager = onmt.utils.build_report_manager(opt)
-    trainer = onmt.Trainer(model, train_loss, valid_loss, optim, trunc_size,
+    trainer = onmt.Trainer(model, train_loss, train_loss_rec, valid_loss, optim, trunc_size,
                            shard_size, norm_method,
                            accum_count, accum_steps,
                            n_gpu, gpu_rank,
@@ -107,7 +112,7 @@ class Trainer(object):
                 Thus nothing will be saved if this parameter is None
     """
 
-    def __init__(self, model, train_loss, valid_loss, optim,
+    def __init__(self, model, train_loss, train_loss_rec, valid_loss, optim,
                  trunc_size=0, shard_size=32,
                  norm_method="sents", accum_count=[1],
                  accum_steps=[0],
@@ -118,6 +123,7 @@ class Trainer(object):
         # Basic attributes.
         self.model = model
         self.train_loss = train_loss
+        self.train_loss_rec = train_loss_rec
         self.valid_loss = valid_loss
         self.optim = optim
         self.trunc_size = trunc_size
@@ -316,8 +322,17 @@ class Trainer(object):
                                    else (batch.src, None)
                 tgt = batch.tgt
 
+                target_size = batch.tgt.size(0)
+                # Truncated BPTT: reminder not compatible with accum > 1
+                if self.trunc_size:
+                    trunc_size = self.trunc_size
+                else:
+                    trunc_size = target_size
+                tgt_lengths = torch.tensor([target_size], dtype=src_lengths.dtype).repeat(len(batch))
+                tgt_lengths = tgt_lengths.to(src_lengths.get_device())
+
                 # F-prop through the model.
-                outputs, attns = valid_model(src, tgt, src_lengths)
+                outputs, attns, outputs_2, attns_2 = valid_model(src, tgt, src_lengths, tgt_lengths)
 
                 # Compute loss.
                 _, batch_stats = self.valid_loss(batch, outputs, attns, model=valid_model)
@@ -357,11 +372,16 @@ class Trainer(object):
             for j in range(0, target_size-1, trunc_size):
                 # 1. Create truncated target.
                 tgt = tgt_outer[j: j + trunc_size]
+                tgt_lengths = torch.tensor([target_size], dtype=src_lengths.dtype).repeat(len(batch))
+                tgt_lengths = tgt_lengths.to(src_lengths.get_device())
+                ### tgt_lengths shape = [bsz] (all values are = target_size)
 
                 # 2. F-prop all but generator.
                 if self.accum_count == 1:
                     self.optim.zero_grad()
-                outputs, attns = self.model(src, tgt, src_lengths, bptt=bptt)
+                outputs, attns, rec_outputs, rec_attns = self.model(src, tgt, src_lengths, tgt_lengths, bptt=bptt)
+                ## outputs shape [5, 1, 768] (tgt_len, bsz, hidden)
+                ## rec_outputs shape [170, 1, 768] (src_len, bsz, hidden)
                 bptt = True
 
                 # 3. Compute loss.
@@ -376,6 +396,15 @@ class Trainer(object):
                         trunc_size=trunc_size,
                         model=self.model
                     )
+
+                    ## What we need: 
+                    ## output = [batch_size, nb_classes, seq_len], target = [batch_size, seq_len]
+                    ground_truth = batch.src[0].squeeze(2).transpose(0,1)        ## shape [1, 114]
+                    pred_outputs = rec_outputs.transpose(0,1)                    ## shape [114, 1, 768]
+                    pred_outputs = pred_outputs.transpose(1,2)
+
+                    ## we do a cross entropy between ground_truth and rec_outputs
+                    loss += F.cross_entropy(pred_outputs, ground_truth)
 
                     if loss is not None:
                         self.optim.backward(loss)

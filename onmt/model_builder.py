@@ -175,6 +175,7 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None, gpu_id=None):
         tgt_emb.word_lut.weight = src_emb.word_lut.weight
 
     decoder = build_decoder(model_opt, tgt_emb)
+    reconstruct_decoder = build_decoder(model_opt, src_emb)
 
     # Build NMTModel(= encoder + decoder).
     if gpu and gpu_id is not None:
@@ -192,7 +193,8 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None, gpu_id=None):
             logger.info("Do use memory")
             all_docs = load_all_docs(model_opt, fields, device)
             logger.info("finish load all documents")
-            model = onmt.models.NMTModel(encoder, decoder, all_docs, model_opt, src_emb)
+            src_vocab_size = len(fields["src"].base_field.vocab)
+            model = onmt.models.NMTModel(encoder, decoder, reconstruct_decoder, src_vocab_size, all_docs, model_opt, src_emb)
         else:
             logger.info("NO MODEL!!!")
     else:
