@@ -40,19 +40,3 @@ n_best: 500
 
 tgt_type: multiple
 #beam_terminate: full/topbeam
-
-tasks: pred eval report
-data_dir: data/keyphrase/meng17/
-
-ckpt_dir: models/stackexchange_0/ 
-output_dir: output/stackexchange_0/
-
-testsets: stackexchange_2
-gpu: 0
-verbose: True
-beam_size: 10
-batch_size: 32
-max_length: 40
-onepass: True
-beam_terminate topbeam: True
-eval_topbeam: True
