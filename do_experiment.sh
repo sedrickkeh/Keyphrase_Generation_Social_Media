@@ -21,6 +21,11 @@ python train.py \
     -tensorboard_log_dir  runs/${name}/ \
     $hparams
 
+# Generate Loss Curve
+echo "========= Generating Loss Curve ============="
+python gen_loss_figure.py --experiment=$name
+echo "Loss curve saved at output/$name/$name-loss.png"
+
 # Run evaluation
 echo "========= Evaluation ============="
 python kp_gen_eval.py \
