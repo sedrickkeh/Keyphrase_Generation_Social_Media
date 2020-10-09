@@ -30,12 +30,12 @@ max_generator_batches: 2
 accum_count: 4
 
 # batch_size is actually: num_example * max(#word in src/tgt)
-batch_size: 4096
+batch_size: 2048
 #batch_size: 8192
 #batch_size: 24576
-valid_batch_size: 256
+valid_batch_size: 128
 
-train_steps: 40000
+train_steps: 20000
 valid_steps: 10000
 report_every: 200
 
