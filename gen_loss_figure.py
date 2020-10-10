@@ -3,8 +3,8 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_loss(experiment):
-    log_file_path = "models/{}/stackexchange.log".format(experiment)
+def plot_loss(task, experiment):
+    log_file_path = "models/{}/{}.log".format(experiment, task)
     steps_list, acc_list = [], []
 
     with open(log_file_path, "r") as file:
@@ -28,11 +28,13 @@ def plot_loss(experiment):
 
 def main(config):
     experiment = config.experiment.lower()
-    plot_loss(experiment)
+    task = config.task.lower()
+    plot_loss(task, experiment)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--experiment', type=str, default="stackexchange_0")
+    parser.add_argument('--task', type=str, default="twitter_conv")
+    parser.add_argument('--experiment', type=str, default="twitter_conv_0")
     config = parser.parse_args()
 
     main(config)

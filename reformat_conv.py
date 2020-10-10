@@ -68,12 +68,30 @@ def reformat_json(dataset, filename):
             json.dump(item, json_file)
             json_file.write('\n')
 
+def reformat_to_takg(dataset, filename):
+    postpath = "data/keyphrase/{}/{}_post.txt".format(dataset, filename)
+    convpath = "data/keyphrase/{}/{}_conv.txt".format(dataset, filename)
+    post = open(postpath, "r", encoding='utf-8')
+    conv = open(convpath, "r", encoding='utf-8')
+
+    src_list = []
+    for idx, (text_1, text_2) in enumerate(zip(post, conv)):
+        curr = text_1.strip() + " " + text_2.strip()
+        src_list.append(curr)
+
+    savepath = "../TAKG/data/{}/{}_{}.src".format(dataset, dataset, filename)
+    with open(savepath, 'w') as f:
+        for s in src_list:
+            f.write("%s\n" % s)
+
+
 
 def main(config):
     dataset = config.dataset.lower()
     for data_type in ["test", "valid", "train"]:
         reformat(dataset, data_type)
         reformat_json(dataset, data_type)
+        reformat_to_takg(dataset, data_type)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

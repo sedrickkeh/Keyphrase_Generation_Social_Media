@@ -2,7 +2,7 @@
 
 # Set experiment name
 if (( $# < 2 )); then
-    echo "Usage: ./do_experiment.sh [task] [name_of_experiment] [hyperparams], e.g. ./do_experiment.sh stackexchange_2 stackexchange_0 \"--dropout=0.2\""
+    echo "Usage: ./do_experiment.sh [task] [name_of_experiment] [hyperparams], e.g. ./do_experiment.sh twitter_conv twitter_conv_0 \"--dropout=0.2\""
     exit
 fi
 
@@ -15,17 +15,18 @@ echo "Hyperparameters: $hparams"
 # Train
 echo "========= Training ============="
 python train.py \
-    -config config/train/config-transformer-$task.yml \
+    -config config/train/config-transformer-${task}.yml \
     -exp ${name} \
-    -save_model models/${name}/$task \
-    -log_file models/${name}/$task.log \
+    -save_model models/${name}/${task} \
+    -log_file models/${name}/${task}.log \
     -tensorboard_log_dir  runs/${name}/ \
-    $hparams
+    ${hparams}
 
 # Generate Loss Curve
 echo "========= Generating Loss Curve ============="
-python gen_loss_figure.py --experiment=$name
-echo "Loss curve saved at output/$name/$name-loss.png"
+mkdir output/${name}
+python gen_loss_figure.py --experiment=${name} --task=${task}
+echo "Loss curve saved at output/${name}/${name}-loss.png"
 
 # Run evaluation
 echo "========= Evaluation ============="
