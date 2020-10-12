@@ -479,6 +479,8 @@ def train_opts(parser):
               help="Attention Dropout probability.")
     group.add('--dropout_steps', '-dropout_steps', type=int, nargs='+',
               default=[0], help="Steps at which dropout changes.")
+    group.add('--weight_scaler', '-weight_scaler', type=float, default=1.0,
+               help="Scaling variable to combine the two losses.")
     group.add('--truncated_decoder', '-truncated_decoder', type=int, default=0,
               help="""Truncated bptt.""")
     group.add('--adam_beta1', '-adam_beta1', type=float, default=0.9,

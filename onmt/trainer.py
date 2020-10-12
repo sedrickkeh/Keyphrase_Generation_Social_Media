@@ -59,6 +59,7 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
     average_every = opt.average_every
     dropout = opt.dropout
     dropout_steps = opt.dropout_steps
+    weight_scaler = opt.weight_scaler
     if device_id >= 0:
         gpu_rank = opt.gpu_ranks[device_id]
     else:
@@ -82,7 +83,8 @@ def build_trainer(opt, device_id, model, fields, optim, model_saver=None):
                            model_dtype=opt.model_dtype,
                            earlystopper=earlystopper,
                            dropout=dropout,
-                           dropout_steps=dropout_steps)
+                           dropout_steps=dropout_steps,
+                           weight_scaler=weight_scaler)
     return trainer
 
 
@@ -119,7 +121,7 @@ class Trainer(object):
                  n_gpu=1, gpu_rank=1,
                  gpu_verbose_level=0, report_manager=None, model_saver=None,
                  average_decay=0, average_every=1, model_dtype='fp32',
-                 earlystopper=None, dropout=[0.3], dropout_steps=[0]):
+                 earlystopper=None, dropout=[0.3], dropout_steps=[0], weight_scaler=1.0):
         # Basic attributes.
         self.model = model
         self.train_loss = train_loss
@@ -144,6 +146,7 @@ class Trainer(object):
         self.earlystopper = earlystopper
         self.dropout = dropout
         self.dropout_steps = dropout_steps
+        self.weight_scaler = weight_scaler
 
         for i in range(len(self.accum_count_l)):
             assert self.accum_count_l[i] > 0
@@ -404,7 +407,7 @@ class Trainer(object):
                     pred_outputs = pred_outputs.transpose(1,2)
 
                     ## we do a cross entropy between ground_truth and rec_outputs
-                    loss += F.cross_entropy(pred_outputs, ground_truth)
+                    loss = loss + (self.weight_scaler * F.cross_entropy(pred_outputs, ground_truth))
 
                     if loss is not None:
                         self.optim.backward(loss)
