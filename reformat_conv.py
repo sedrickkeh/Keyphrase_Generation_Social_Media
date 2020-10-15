@@ -91,7 +91,7 @@ def main(config):
     for data_type in ["test", "valid", "train"]:
         reformat(dataset, data_type)
         reformat_json(dataset, data_type)
-        reformat_to_takg(dataset, data_type)
+        # reformat_to_takg(dataset, data_type)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
