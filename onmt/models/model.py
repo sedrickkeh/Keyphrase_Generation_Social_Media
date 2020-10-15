@@ -10,7 +10,7 @@ class word_memory(nn.Module):
         super(word_memory, self).__init__()
         self.word_embedding_a = nn.Parameter(all_docs.permute(1,0))
         self.word_embedding_b = embedding_b
-        self.word_embedding_c = nn.Parameter(all_docs)
+        self.word_embedding_c = nn.Parameter(all_docs.clone())
 
     def forward(self, word_seq, all_docs):
         '''
