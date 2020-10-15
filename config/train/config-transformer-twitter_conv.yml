@@ -3,7 +3,7 @@ memory: True
 tgt_type: verbatim_append
 
 data: data/keyphrase/meng17/twitter_conv
-save_checkpoint_steps: 5000
+save_checkpoint_steps: 2000
 keep_checkpoint: 40
 seed: 3435
 
@@ -33,10 +33,10 @@ accum_count: 4
 batch_size: 1024
 #batch_size: 8192
 #batch_size: 24576
-valid_batch_size: 128
+valid_batch_size: 32
 
-train_steps: 20000
-valid_steps: 10000
+train_steps: 40000
+valid_steps: 500
 report_every: 200
 
 #dropout: 0.2
